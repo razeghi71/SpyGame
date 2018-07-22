@@ -1,0 +1,99 @@
+<html>
+    <head>
+        <script src="bower_components/socket.io-client/dist/socket.io.js"></script>
+        <script src="bower_components/jquery/dist/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="bower_components/semantic/dist/semantic.min.css">
+        <script>
+            $("document").ready(function(){
+                $("#startGame").hide();
+                $("#game").hide(500);
+                $("#go").click(function(){
+                    var socket = io('http://192.168.1.197:3000');
+                    clients = [];
+                    socket.on('connect', function(){
+                        console.log("connected to server");
+                        var name = $("#name").val();
+                        socket.emit('name', name);
+
+                        socket.on('newName', function(name){
+                            console.log("newName", name);
+                            var div = '<div class="item">'+ name + '</div>';
+                            $("#playerList").append(div);
+                        });
+                    });
+                    $("#nameEntry").hide(500);
+                    $("#startGame").show(500);
+
+                    $("#start").click(function(){
+                        socket.emit('start');
+                    });
+                    
+                    socket.on("start", function(){
+                        $("#startGame").hide(500);
+                        $("#game").show(500);
+                    });
+
+                    socket.on("startPlayer", function(name){
+                        var div = '<div class="item">'+ name + '</div>';
+                        $("#playerListInGame").append(div);
+                    });
+
+                    socket.on("role", function(role){
+                        $("#role").append("<span>" + role + "</span>");
+                    });
+
+                    $("#end").click(function(){
+                        socket.emit('end');
+                    });
+
+                    socket.on("end", function(){
+                        $("#game").hide(500);
+                        $("#startGame").show(500);
+                        $("#role").empty();
+                        $("#playerListInGame").empty();
+                    });
+                });
+                
+            });
+        </script>
+    </head>
+    <body>
+        <div class="ui raised very padded text container segment" id="nameEntry">
+            <h2 class="ui header">Enter Your Name</h2>
+            <p></p>
+            <div class="ui input">
+                <input type="text" placeholder="Name..." id="name">
+            </div>
+            <button class="ui primary button" id="go">
+                GO!
+            </button>
+        </div>
+
+        <div class="ui raised very padded text container segment" id="startGame">
+            <h2 class="ui header">Players In Game:</h2>
+            <p></p>
+
+            <div class="ui list" id="playerList">
+            </div>
+
+            <button class="ui primary button" id="start">
+                Start Game!
+            </button>
+        </div>
+
+        <div class="ui raised very padded text container segment" id="game">
+            <h2 class="ui header">Game Started:</h2>
+            <p></p>
+
+            <h3 class="ui header">You Are: <span id="role"></span></h3>
+
+            <div class="ui list" id="playerListInGame">
+            </div>
+
+            <button class="ui primary button" id="end">
+                End Game!
+            </button>
+        </div>
+
+    </body>
+</html>
